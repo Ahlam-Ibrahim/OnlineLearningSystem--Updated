@@ -53,18 +53,18 @@ namespace OnlineLearningSystem.Services
                 .WithMany(cc => cc.CourseCategories)
                 .HasForeignKey(c => c.CourseID);
 
-            ////key - StudentCourses
-            //modelBuilder.Entity<StudentCourse>()
-            //    .HasKey(mc => new { mc.CourseID, mc.Id });
-            ////Many-to-Many Relationship  - StudentCourses
-            //modelBuilder.Entity<StudentCourse>()
-            //    .HasOne(m => m.Course)
-            //    .WithMany(mc => mc.StudentCourses)
-            //    .HasForeignKey(m => m.CourseID);
-            //modelBuilder.Entity<StudentCourse>()
-            //    .HasOne(c => c.Student)
-            //    .WithMany(mc => mc.StudentCourses)
-            //    .HasForeignKey(c => c.Id);
+            //key - StudentCourses
+            modelBuilder.Entity<StudentCourse>()
+                .HasKey(mc => new { mc.CourseID, mc.StudentID });
+            //Many-to-Many Relationship  - StudentCourses
+            modelBuilder.Entity<StudentCourse>()
+                .HasOne(m => m.Course)
+                .WithMany(mc => mc.StudentCourses)
+                .HasForeignKey(m => m.CourseID);
+            modelBuilder.Entity<StudentCourse>()
+                .HasOne(c => c.Student)
+                .WithMany(mc => mc.StudentCourses)
+                .HasForeignKey(c => c.StudentID);
 
 
         }

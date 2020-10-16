@@ -14,9 +14,6 @@ namespace OnlineLearningSystem.Models
 
         }
 
-        //public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -36,7 +33,7 @@ namespace OnlineLearningSystem.Models
 
             //key - StudentCourses
             modelBuilder.Entity<StudentCourse>()
-                .HasKey(mc => new { mc.CourseID, mc.Id });
+                .HasKey(mc => new { mc.CourseID, mc.StudentID });
             //Many-to-Many Relationship  - StudentCourses
             modelBuilder.Entity<StudentCourse>()
                 .HasOne(m => m.Course)
@@ -45,7 +42,7 @@ namespace OnlineLearningSystem.Models
             modelBuilder.Entity<StudentCourse>()
                 .HasOne(c => c.Student)
                 .WithMany(mc => mc.StudentCourses)
-                .HasForeignKey(c => c.Id);
+                .HasForeignKey(c => c.StudentID);
 
 
         }

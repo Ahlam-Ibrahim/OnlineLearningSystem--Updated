@@ -20,7 +20,6 @@ namespace OnlineLearningSystem.Models
         //Offline: attending physically : 1
         //Recrded: recorded videos : 2
     }
-
     public class Course
     {
         [Key]
@@ -33,10 +32,8 @@ namespace OnlineLearningSystem.Models
         public string Description { get; set; }
         public int Duration { get; set; }
         public DateTime DateCreated { get; set; }
-
-        [Required(ErrorMessage = "location type is required.")]
         public Location Location { get; set; }
-        
+
         public virtual ICollection<Section> Sections { get; set; }
         public virtual ICollection<CourseCategory> CourseCategories { get; set; }
         public virtual ICollection<StudentCourse> StudentCourses { get; set; }

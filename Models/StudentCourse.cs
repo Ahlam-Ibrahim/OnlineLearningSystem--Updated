@@ -21,7 +21,7 @@ namespace OnlineLearningSystem.Models
         public int CourseID { get; set; }
         public virtual Course Course { get; set; }
 
-        public string Id { get; set; }
+        public string StudentID { get; set; }
         public virtual ApplicationUser Student { get; set; }
         public Status Status { get; set; }
 

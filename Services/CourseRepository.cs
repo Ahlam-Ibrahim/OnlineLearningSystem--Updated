@@ -30,7 +30,7 @@ namespace OnlineLearningSystem.Services
         {
             var course = GetCourse(courseId);
 
-            course.Sections =  new List<Section>();
+            course.Sections = new List<Section>();
             course.Sections.Add(section);
 
             section.Course = course;
@@ -54,7 +54,7 @@ namespace OnlineLearningSystem.Services
 
             return Save();
         }
-        
+
         public bool UpdateSectionOfACourse(Course course, Section section, string newSection)
         {
             section.Title = newSection;
@@ -107,56 +107,104 @@ namespace OnlineLearningSystem.Services
             return Save();
         }
 
-        public ICollection<Course> GetMyCourses(string Id)
+
+        // MyCourses - Student Section 
+
+        //approved courses
+        public ICollection<Course> GetMyCourses(string studentId)
         {
-            return _courseContext.StudentCourses.Where(c => c.Id == Id)
-                                      .Select(c => c.Course).ToList();
+             return
+             _courseContext.StudentCourses
+                .Where(s => (int) s.Status == 2 // 2 = approved
+                && s.StudentID == studentId)
+                .Select(c => c.Course).ToList();
         }
 
-        //this emthod will be updated after adding the enum classes
-        //the student will send an order of joining the class 
-        //and the admin will accept the orders - then the admin
-
-        public bool AddCourseToStudent(Course course, ApplicationUser student)
+        //student can follow the status of his/her orders
+        public ICollection<StudentCourse> MyOrderedCourses(string studentId)
         {
-            StudentCourse myCourses = new StudentCourse
-            {
-                Course = course,
-                CourseID = course.Id,
-                Student = student,
-                Id = student.Id,
-                //The admin will set the status of this course 
-                //for this particular student as => Approved
-                Status = Status.Approved
-            };
-            _courseContext.StudentCourses.Add(myCourses);
-            return Save();
-        }     
+            return _courseContext.StudentCourses
+            .Where(s => (int) s.Status == 1 // 1 = ordered
+            || (int) s.Status == 3 // 3 = WaitingForPayment
+            && s.StudentID == studentId).ToList();
+        }
 
+        //student can order a course
         public bool OrderACourse(Course course, ApplicationUser student)
         {
             StudentCourse myCourses = new StudentCourse
             {
                 Course = course,
                 CourseID = course.Id,
-                Id = student.Id,
+                Student = student,
+                StudentID = student.Id,
                 Status = Status.Ordered
             };
             _courseContext.StudentCourses.Add(myCourses);
             return Save();
         }
 
-        //public bool OrderACourse(Course course, ApplicationUser student)
-        //{
-        //    StudentCourse myCourses = new StudentCourse
-        //    {
-        //        Course = course,
-        //        CourseID = course.Id,
-        //        Student = student,
-        //        UserName = student.UserName
-        //    };
-        //    _courseContext.StudentCourses.Add(myCourses);
-        //    return Save();
-        //}
+        // MyCourses - Admin will view the orders and mark them
+
+        // 3 Views For Ordered Courses 
+        public ICollection<StudentCourse> GetAllCoursesOrders()
+        {
+            return _courseContext.StudentCourses
+            .Where(s => (int) s.Status == 1).ToList(); // 1 = ordered
+        } 
+        
+        public ICollection<StudentCourse> GetASpecificCourseOrders(int courseId)
+        {
+            return _courseContext.StudentCourses
+            .Where(s => (int) s.Status == 1  // 1 = ordered
+            && s.CourseID == courseId).ToList();
+        } 
+        public ICollection<StudentCourse> GetAllOrdersFromAStudent(string studentId)
+        {
+            return _courseContext.StudentCourses
+            .Where(s => (int)s.Status == 1 // 1 = ordered
+            && s.StudentID == studentId).ToList();
+        }
+
+        // 3 Views For WaitingForPayment Courses 
+        public ICollection<StudentCourse> GetAllWaitingForPaymentOrders()
+        {
+            return _courseContext.StudentCourses
+           .Where(s => (int)s.Status == 3).ToList(); // 1 = WaitingForPayment
+        } 
+        
+        public ICollection<StudentCourse> GetWaitingForPaymentOrdersOfACourse(int courseId)
+        {
+            return _courseContext.StudentCourses
+            .Where(s => (int)s.Status == 3 //WaitingForPayment
+            && s.CourseID == courseId).ToList();
+        } 
+        public ICollection<StudentCourse> GetWaitingForPaymentOrdersOfAStudent(string studentId)
+        {
+            return _courseContext.StudentCourses
+            .Where(s => (int)s.Status == 3 //WaitingForPayment
+            && s.StudentID == studentId).ToList();
+        } 
+        
+        public bool MarkACourseOrderAsApproved(StudentCourse courseOrder)
+        {
+
+            //The admin will set the status of this course 
+            //for this particular student as => Approved
+            courseOrder.Status = Status.Approved;
+            _courseContext.StudentCourses.Update(courseOrder); 
+            //the first time it will be registered as ordered by the student,
+            //after marking it as approved we will only update the status
+            return Save();
+        } 
+        public bool MarkACourseOrderAsWaitingForPayment(StudentCourse courseOrder)
+        {
+            //The admin will set the status of this course 
+            //for this particular student as => WaitingForPayment
+            courseOrder.Status = Status.WaitingForPayment;
+            _courseContext.StudentCourses.Update(courseOrder);
+            return Save();
+        }
+
     }
 }

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "eW+T3B4/y3fTuyE4RWrAOmY8CEKwqZiXyFXMekh/3FHXYPxk5m+wqOPJO6xrHtpwJZ6xLccvPFYWula8ignU9w==",
+  "dgSpecHash": "coWL5OYTxf4NaruQsrOES/QBW4d+m779teb7TMtN38ig5kkNSngtJSDPSV0KuHWocVhYtffard9UXgJA9N88GQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Lenov\\source\\repos\\4-OnlineLearningSystem\\OnlineLearningSystem\\OnlineLearningSystem\\OnlineLearningSystem.csproj",
+  "projectFilePath": "C:\\Users\\Lenov\\source\\repos\\OnlineLearningSystem--Updated-main\\OnlineLearningSystem.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Lenov\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\Lenov\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\3.1.8\\microsoft.aspnetcore.authentication.jwtbearer.3.1.8.nupkg.sha512",
