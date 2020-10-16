@@ -16,6 +16,7 @@ namespace OnlineLearningSystem.Services
         bool CreateSectionOfACourse(int courseId, Section section);
         ICollection<Course> GetMyCourses(string userName);
         bool AddCourseToStudent(Course course, ApplicationUser student);
+        bool OrderACourse(Course course, ApplicationUser student);
 
         bool UpdateCourse(Course course);
         bool UpdateSectionOfACourse(Course course, Section section, string newSection);

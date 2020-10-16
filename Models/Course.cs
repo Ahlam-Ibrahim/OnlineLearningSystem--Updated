@@ -13,25 +13,14 @@ namespace OnlineLearningSystem.Models
 {
     public enum Location
     {
-        //[EnumMember(Value = "Online")]
         Online,
-        //[EnumMember(Value = "Offline")]
         Offline,
-        //[EnumMember(Value = "Recorded")]
         Recorded
         //Online: Like a Zoom meeting - through link : 0
         //Offline: attending physically : 1
         //Recrded: recorded videos : 2
     }
-    public enum Status
-    {
-        //[EnumMember(Value = "Ordered")]
-        Ordered,
-        //[EnumMember(Value = "Approved")]
-        Approved,
-        //[EnumMember(Value = "WaitingForPayment")]
-        WaitingForPayment
-    }
+
     public class Course
     {
         [Key]
@@ -45,16 +34,9 @@ namespace OnlineLearningSystem.Models
         public int Duration { get; set; }
         public DateTime DateCreated { get; set; }
 
-        // TO DO: some problems in enum classes
-
-        //[JsonProperty("Location")]
-        //[Required(ErrorMessage = "Location type is required.")]
+        [Required(ErrorMessage = "location type is required.")]
         public Location Location { get; set; }
-
-        //[JsonProperty("Status")]
-        //[Required(ErrorMessage = "Status type is required.")]
-        public Status Status { get; set; }
-
+        
         public virtual ICollection<Section> Sections { get; set; }
         public virtual ICollection<CourseCategory> CourseCategories { get; set; }
         public virtual ICollection<StudentCourse> StudentCourses { get; set; }

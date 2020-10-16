@@ -107,9 +107,9 @@ namespace OnlineLearningSystem.Services
             return Save();
         }
 
-        public ICollection<Course> GetMyCourses(string userName)
+        public ICollection<Course> GetMyCourses(string Id)
         {
-            return _courseContext.StudentCourses.Where(c => c.UserName == userName)
+            return _courseContext.StudentCourses.Where(c => c.Id == Id)
                                       .Select(c => c.Course).ToList();
         }
 
@@ -124,13 +124,39 @@ namespace OnlineLearningSystem.Services
                 Course = course,
                 CourseID = course.Id,
                 Student = student,
-                UserName = student.UserName
+                Id = student.Id,
+                //The admin will set the status of this course 
+                //for this particular student as => Approved
+                Status = Status.Approved
+            };
+            _courseContext.StudentCourses.Add(myCourses);
+            return Save();
+        }     
+
+        public bool OrderACourse(Course course, ApplicationUser student)
+        {
+            StudentCourse myCourses = new StudentCourse
+            {
+                Course = course,
+                CourseID = course.Id,
+                Id = student.Id,
+                Status = Status.Ordered
             };
             _courseContext.StudentCourses.Add(myCourses);
             return Save();
         }
 
-
-
+        //public bool OrderACourse(Course course, ApplicationUser student)
+        //{
+        //    StudentCourse myCourses = new StudentCourse
+        //    {
+        //        Course = course,
+        //        CourseID = course.Id,
+        //        Student = student,
+        //        UserName = student.UserName
+        //    };
+        //    _courseContext.StudentCourses.Add(myCourses);
+        //    return Save();
+        //}
     }
 }

@@ -257,9 +257,6 @@ namespace OnlineLearningSystem.Migrations.Authentication
                     b.Property<int>("Location")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -310,12 +307,15 @@ namespace OnlineLearningSystem.Migrations.Authentication
                     b.Property<int>("CourseID")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("CourseID", "UserName");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
-                    b.HasIndex("UserName");
+                    b.HasKey("CourseID", "Id");
+
+                    b.HasIndex("Id");
 
                     b.ToTable("StudentCourse");
                 });
@@ -440,7 +440,7 @@ namespace OnlineLearningSystem.Migrations.Authentication
 
                     b.HasOne("OnlineLearningSystem.Models.ApplicationUser", "Student")
                         .WithMany("StudentCourses")
-                        .HasForeignKey("UserName")
+                        .HasForeignKey("Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

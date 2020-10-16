@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace OnlineLearningSystem.Migrations.Authentication
+namespace OnlineLearningSystem.Migrations
 {
-    public partial class InitialMigrationAuthDbContext : Migration
+    public partial class m1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -71,8 +71,7 @@ namespace OnlineLearningSystem.Migrations.Authentication
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Duration = table.Column<int>(type: "int", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Location = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Location = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -234,14 +233,15 @@ namespace OnlineLearningSystem.Migrations.Authentication
                 columns: table => new
                 {
                     CourseID = table.Column<int>(type: "int", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    StudentID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StudentCourse", x => new { x.CourseID, x.UserName });
+                    table.PrimaryKey("PK_StudentCourse", x => new { x.CourseID, x.StudentID });
                     table.ForeignKey(
-                        name: "FK_StudentCourse_AspNetUsers_UserName",
-                        column: x => x.UserName,
+                        name: "FK_StudentCourse_AspNetUsers_StudentID",
+                        column: x => x.StudentID,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -323,9 +323,9 @@ namespace OnlineLearningSystem.Migrations.Authentication
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudentCourse_UserName",
+                name: "IX_StudentCourse_StudentID",
                 table: "StudentCourse",
-                column: "UserName");
+                column: "StudentID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Video_SectionId",

@@ -71,6 +71,7 @@ namespace OnlineLearningSystem
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AuthenticationContext>()
                 .AddDefaultTokenProviders();
+
             //Here we can customize the default settings for validation
             //Removing UserName might be done from here
             services.Configure<IdentityOptions>(options =>

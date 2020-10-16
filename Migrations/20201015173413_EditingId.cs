@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace OnlineLearningSystem.Migrations
 {
-    public partial class InitialMigrationAppDbContext : Migration
+    public partial class EditingId : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -56,8 +56,7 @@ namespace OnlineLearningSystem.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Duration = table.Column<int>(type: "int", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,18 +111,20 @@ namespace OnlineLearningSystem.Migrations
                 name: "StudentCourses",
                 columns: table => new
                 {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseID = table.Column<int>(type: "int", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StudentCourses", x => new { x.CourseID, x.UserName });
+                    table.PrimaryKey("PK_StudentCourses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StudentCourses_ApplicationUser_UserName",
-                        column: x => x.UserName,
+                        name: "FK_StudentCourses_ApplicationUser_StudentId",
+                        column: x => x.StudentId,
                         principalTable: "ApplicationUser",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_StudentCourses_Courses_CourseID",
                         column: x => x.CourseID,
@@ -163,9 +164,14 @@ namespace OnlineLearningSystem.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudentCourses_UserName",
+                name: "IX_StudentCourses_CourseID",
                 table: "StudentCourses",
-                column: "UserName");
+                column: "CourseID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentCourses_StudentId",
+                table: "StudentCourses",
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Videos_SectionId",

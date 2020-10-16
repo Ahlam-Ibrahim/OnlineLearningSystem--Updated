@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineLearningSystem.Services;
 
-namespace OnlineLearningSystem.Migrations
+namespace OnlineLearningSystem.Migrations.ApplicationDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201014175840_InitialMigrationAppDbContext")]
-    partial class InitialMigrationAppDbContext
+    [Migration("20201015225615_CreateTable")]
+    partial class CreateTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -113,10 +113,6 @@ namespace OnlineLearningSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -167,12 +163,16 @@ namespace OnlineLearningSystem.Migrations
                     b.Property<int>("CourseID")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("StudentID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("CourseID", "UserName");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasIndex("UserName");
+                    b.HasKey("CourseID", "StudentID");
+
+                    b.HasIndex("StudentID");
 
                     b.ToTable("StudentCourses");
                 });
@@ -236,7 +236,7 @@ namespace OnlineLearningSystem.Migrations
 
                     b.HasOne("OnlineLearningSystem.Models.ApplicationUser", "Student")
                         .WithMany("StudentCourses")
-                        .HasForeignKey("UserName")
+                        .HasForeignKey("StudentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

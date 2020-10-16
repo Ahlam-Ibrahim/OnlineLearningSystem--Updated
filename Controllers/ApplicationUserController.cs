@@ -42,7 +42,7 @@ namespace OnlineLearningSystem.Controllers
         public async Task<Object> PostApplicationUser(ApplicationUserModel model)
         {
             //The role assigned when a new member signs up
-            model.Role = "Student";
+            model.Role = "Admin";
             var applicationUser = new ApplicationUser() {
                 UserName = model.UserName,
                 Email = model.Email,

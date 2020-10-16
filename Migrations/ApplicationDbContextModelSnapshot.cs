@@ -111,10 +111,6 @@ namespace OnlineLearningSystem.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -162,15 +158,24 @@ namespace OnlineLearningSystem.Migrations
 
             modelBuilder.Entity("OnlineLearningSystem.Models.StudentCourse", b =>
                 {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("CourseID")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudentId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("CourseID", "UserName");
+                    b.HasKey("Id");
 
-                    b.HasIndex("UserName");
+                    b.HasIndex("CourseID");
+
+                    b.HasIndex("StudentId");
 
                     b.ToTable("StudentCourses");
                 });
@@ -234,9 +239,7 @@ namespace OnlineLearningSystem.Migrations
 
                     b.HasOne("OnlineLearningSystem.Models.ApplicationUser", "Student")
                         .WithMany("StudentCourses")
-                        .HasForeignKey("UserName")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StudentId");
 
                     b.Navigation("Course");
 

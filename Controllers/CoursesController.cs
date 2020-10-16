@@ -31,7 +31,7 @@ namespace OnlineLearningSystem.Controllers
 
         // GET api/courses
         [HttpGet]
-        public ActionResult GetCounrses()
+        public ActionResult GetCourses()
         {
             var courses = _courseRepository.GetCourses().ToList();
 
@@ -46,8 +46,9 @@ namespace OnlineLearningSystem.Controllers
                     Id = course.Id,
                     Title = course.Title,
                     Description = course.Description,
-                    Duration = course.Duration,
-                    DateCreated = course.DateCreated
+                     Duration = course.Duration,
+                    DateCreated = course.DateCreated.Date,
+                    Location = course.Location
                 });
             }
             return Ok(coursesDto);
@@ -69,7 +70,7 @@ namespace OnlineLearningSystem.Controllers
                 Title = course.Title,
                 Description = course.Description,
                 Duration = course.Duration,
-                DateCreated = course.DateCreated
+                DateCreated = course.DateCreated.Date
             };
 
             return Ok(courseDto);
@@ -94,8 +95,8 @@ namespace OnlineLearningSystem.Controllers
                     Title = course.Title,
                     Description = course.Description,
                     Duration = course.Duration,
-                    DateCreated = course.DateCreated
-
+                    DateCreated = course.DateCreated,
+                    Location = course.Location,
                 });
             }
 
@@ -107,6 +108,8 @@ namespace OnlineLearningSystem.Controllers
         [Authorize(Roles = "Admin,Mentor", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult CreateCourse([FromBody] Course course)
         {
+            course.DateCreated = DateTime.Now.Date;
+
             if (course == null)
                 return BadRequest();
 
@@ -179,52 +182,75 @@ namespace OnlineLearningSystem.Controllers
 
         // Sections -- Controlling the section(s) sonnected to a course
 
-        // GET api/courses/sections/courseId
-        [HttpGet("sections/{courseId}")]
-        public ActionResult GetAllSectionOfACourse(int courseId)
-        {
+        //// GET api/courses/sections/courseId
+        //[HttpGet("sections/{courseId}")]
+        //public ActionResult GetAllSectionOfACourse(int courseId)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return BadRequest(ModelState);
+        //    //only if the course status was: Approved
+        //    var course = _courseRepository.GetCourse(courseId);
+        //    var sections = new List<Section>();
+        //    int courseStatus = (int) course.Status;
+        //    if (courseStatus == 1) //Approved
+        //    {
+        //        sections = (List<Section>)_courseRepository.GetAllSectionOfACourse(courseId);
+        //        var sectionsDto = new List<SectionDto>();
+        //        foreach (var section in sections)
+        //        {
+        //            sectionsDto.Add(new SectionDto
+        //            {
+        //                Id = section.Id,
+        //                Title = section.Title,
+        //                Videos = section.Videos
+        //            });
+        //        }
 
-            var sections = _courseRepository.GetAllSectionOfACourse(courseId);
+        //        return Ok(sectionsDto);
+        //    }
+        //    else if(courseStatus == 2) //waiting for payment
+        //    {
+        //        return Ok("You need to pay before viewing/attending this course, for more info click here: ");
+        //    }
+        //    else if(courseStatus == 0) //ordered
+        //    {
+        //        return Ok("Your order is under proccessing. Please wait.");
+        //    }
+        //    else //if the user didn't order yet - Default
+        //    {
+        //        return Ok("You have to order this course to be able to view/attend it");
+        //    }
+        //}
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        //// GET api/courses/section/sectionId
+        //[HttpGet("section/{sectionId}", Name = "GetSection")]
+        //public ActionResult GetSection(int sectionId)
+        //{
+        //    if (!_sectionRepository.SectionExists(sectionId))
+        //        return NotFound();
+        //    if (!ModelState.IsValid)
+        //        return BadRequest();
 
-            var sectionsDto = new List<SectionDto>();
-            foreach (var section in sections)
-            {
-                sectionsDto.Add(new SectionDto
-                {
-                    Id = section.Id,
-                    Title = section.Title,
-                    Videos = section.Videos
-                });
-            }
+        //    var section = _sectionRepository.GetSection(sectionId);
+        //    int courseStatus = (int)section.Course.Status;
+     
+        //    if (courseStatus == 2) //Approved
+        //    {
+        //        var sectionDto = new SectionDto
+        //        {
+        //            Id = section.Id,
+        //            Title = section.Title,
+        //            Videos = section.Videos
+        //        };
 
-            return Ok(sectionsDto);
-        }
-
-        // GET api/courses/section/sectionId
-        [HttpGet("section/{sectionId}", Name = "GetSection")]
-        public ActionResult GetSection(int sectionId)
-        { 
-            
-            if (!_sectionRepository.SectionExists(sectionId))
-                return NotFound();
-
-            var section = _sectionRepository.GetSection(sectionId);
-
-            if (!ModelState.IsValid)
-                return BadRequest();
-
-            var sectionDto = new SectionDto
-            {
-                Id = section.Id,
-                Title = section.Title,
-                Videos = section.Videos
-            };
-
-            return Ok(sectionDto);
-        }
+        //        return Ok(sectionDto);
+        //    }
+        //    else //otherwise - the user shouldn't be able to reach this method getSection
+        //    //unlike the one above, that's why it doen;t contain detailed error msgs
+        //    {
+        //        return Ok("You are not allowed to view this course's section");
+        //    }
+        //}
 
         // POST api/courses/sections/courseId
         [HttpPost("sections/{courseId}")]
@@ -302,16 +328,6 @@ namespace OnlineLearningSystem.Controllers
 
         // MyCourses Section - courses for a particular student
 
-        //Method to rerun current user info 
-
-        //public async Task<Object> CurrentUserObject()
-        //{
-        //    string userId = User.Claims.First(c => c.Type == "UserID").Value;
-        //    var user = await _userManager.FindByIdAsync(userId);
-        //    return user;
-
-        //}
-
         [HttpGet("myCourses")]
         [Authorize(Roles= "Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         //GET: /api/content/profile
@@ -319,7 +335,8 @@ namespace OnlineLearningSystem.Controllers
         {
             string userId = User.Claims.First(c => c.Type == "UserID").Value;
             var user = await _userManager.FindByIdAsync(userId);
-            var myCourses = _courseRepository.GetMyCourses(user.Id).ToList();
+            var myCourses = _courseRepository.GetMyCourses(userId).ToList();
+            //only the approved courses will be viewable
             return Ok(myCourses);
         }
 
@@ -354,6 +371,36 @@ namespace OnlineLearningSystem.Controllers
 
         }
 
+        // POST api/courses/order/courseId
+        [HttpPost("order/{courseId}")]
+        [Authorize(Roles = "Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<Object> OrderACourse(int courseId)
+        {
+            if (courseId == null)
+                return BadRequest();
+
+            var course = _courseRepository.GetCourse(courseId);
+            string userId = User.Claims.First(c => c.Type == "UserID").Value;
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (course == null)
+                return BadRequest();
+
+            if (user == null)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!_courseRepository.OrderACourse(course, user))
+            {
+                ModelState.AddModelError("", $"Something went wrong!");
+                return BadRequest(ModelState);
+            }
+
+            return CreatedAtRoute("GetCourse", new { courseId = course.Id }, course);
+
+        }
 
 
     }

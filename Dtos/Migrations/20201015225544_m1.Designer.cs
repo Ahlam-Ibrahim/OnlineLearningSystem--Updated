@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineLearningSystem.Models;
 
-namespace OnlineLearningSystem.Migrations.Authentication
+namespace OnlineLearningSystem.Migrations
 {
     [DbContext(typeof(AuthenticationContext))]
-    [Migration("20201014175907_InitialMigrationAuthDbContext")]
-    partial class InitialMigrationAuthDbContext
+    [Migration("20201015225544_m1")]
+    partial class m1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -259,9 +259,6 @@ namespace OnlineLearningSystem.Migrations.Authentication
                     b.Property<int>("Location")
                         .HasColumnType("int");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -312,12 +309,15 @@ namespace OnlineLearningSystem.Migrations.Authentication
                     b.Property<int>("CourseID")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("StudentID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("CourseID", "UserName");
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
-                    b.HasIndex("UserName");
+                    b.HasKey("CourseID", "StudentID");
+
+                    b.HasIndex("StudentID");
 
                     b.ToTable("StudentCourse");
                 });
@@ -442,7 +442,7 @@ namespace OnlineLearningSystem.Migrations.Authentication
 
                     b.HasOne("OnlineLearningSystem.Models.ApplicationUser", "Student")
                         .WithMany("StudentCourses")
-                        .HasForeignKey("UserName")
+                        .HasForeignKey("StudentID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
