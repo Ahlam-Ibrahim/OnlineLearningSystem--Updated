@@ -47,11 +47,7 @@ namespace OnlineLearningSystem.Services
 
         public bool DeleteSectionOfACourse(Section section, Course course)
         {
-            course.Sections.Remove(section);
-
-            section.Course = null;
             _courseContext.Sections.Remove(section);
-
             return Save();
         }
 
@@ -124,14 +120,17 @@ namespace OnlineLearningSystem.Services
         public ICollection<StudentCourse> MyOrderedCourses(string studentId)
         {
             return _courseContext.StudentCourses
-            .Where(s => (int) s.Status == 1 // 1 = ordered
-            || (int) s.Status == 3 // 3 = WaitingForPayment
-            && s.StudentID == studentId).ToList();
+            .Where(s => s.StudentID == studentId
+            && (int) s.Status == 1 // 1 = ordered
+            || s.StudentID == studentId 
+            && (int) s.Status == 3 // 3 = WaitingForPayment
+            ).ToList();
         }
 
         //student can order a course
         public bool OrderACourse(Course course, ApplicationUser student)
         {
+          
             StudentCourse myCourses = new StudentCourse
             {
                 Course = course,
@@ -193,8 +192,6 @@ namespace OnlineLearningSystem.Services
             //for this particular student as => Approved
             courseOrder.Status = Status.Approved;
             _courseContext.StudentCourses.Update(courseOrder); 
-            //the first time it will be registered as ordered by the student,
-            //after marking it as approved we will only update the status
             return Save();
         } 
         public bool MarkACourseOrderAsWaitingForPayment(StudentCourse courseOrder)

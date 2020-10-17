@@ -67,6 +67,7 @@ namespace OnlineLearningSystem
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ISectionRepository, SectionRepository>();
+            services.AddScoped<IVideoRepository, VideoRepository>();
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AuthenticationContext>()

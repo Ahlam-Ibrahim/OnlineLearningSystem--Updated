@@ -19,15 +19,18 @@ namespace OnlineLearningSystem.Controllers
     {
         private ICourseRepository _courseRepository;
         private ISectionRepository _sectionRepository;
+        private IVideoRepository _videoRepository;
         private UserManager<ApplicationUser> _userManager;
 
         public CoursesController(ICourseRepository courseRepository,
             ISectionRepository sectionRepository,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IVideoRepository videoRepository)
         {
             _courseRepository = courseRepository;
             _sectionRepository = sectionRepository;
             _userManager = userManager;
+            _videoRepository = videoRepository;
         }
 
         // GET api/courses
@@ -181,68 +184,78 @@ namespace OnlineLearningSystem.Controllers
             return NoContent();
         }
 
-        // Sections -- Controlling the section(s) sonnected to a course
+        // Sections -- Controlling the section(s) connected to a course
+
+        //This request returns the content/sections of the course, unlocking
+        //the course content is allowed for students whom orders were approved
+        //by the admin.
+        //admin and mentor can access the course sections w/o restrictions.
 
         // GET api/courses/sections/courseId
         [HttpGet("sections/{courseId}")]
-        [Authorize(Roles = "Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(Roles = "Admin, Mentor, Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<Object> GetAllSectionOfACourse(int courseId)
         {
 
-            string studentId = User.Claims.First(c => c.Type == "UserID").Value;
-            var student = await _userManager.FindByIdAsync(studentId);
-            var myCourses = _courseRepository.GetMyCourses(studentId).ToList();
-            bool approvedCourse = false;
-            //TO DO: Get order for a course and a user
-            //var courseStatus =  
-            foreach(var course in myCourses)
-            {
-                if (courseId == course.Id)
-                    approvedCourse = true;
+            string userId = User.Claims.First(c => c.Type == "UserID").Value;
+            var user = await _userManager.FindByIdAsync(userId);
+            var userRole = await _userManager.GetRolesAsync(user);
 
+            var myCourses = _courseRepository.GetMyCourses(userId).ToList();
+            bool approvedForStudent = false;
+
+            //First: retrieve the course's sections
+            var sections = new List<Section>();
+            sections = (List<Section>)_courseRepository.GetAllSectionOfACourse(courseId);
+            var sectionsDto = new List<SectionDto>();
+            foreach (var section in sections)
+            {
+                sectionsDto.Add(new SectionDto
+                {
+                    Id = section.Id,
+                    Title = section.Title,
+                    Videos = section.Videos
+                });
+            }
+            if (userRole[0].Equals("Admin") || userRole[0].Equals("Mentor"))
+            {
+                    return Ok(sectionsDto);
             }
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            //only if the course status was: Approved
-            var sections = new List<Section>();
-            if (approvedCourse) //Approved
+                if (userRole[0].Equals("Student"))
             {
-                sections = (List<Section>)_courseRepository.GetAllSectionOfACourse(courseId);
-                var sectionsDto = new List<SectionDto>();
-                foreach (var section in sections)
+
+                foreach (var course in myCourses) 
+                       //all the courses in myCourses are approved by the admin
                 {
-                    sectionsDto.Add(new SectionDto
-                    {
-                        Id = section.Id,
-                        Title = section.Title,
-                        Videos = section.Videos
-                    });
+                        if (courseId == course.Id)
+                        {
+                            approvedForStudent = true;
+                            break;
+                        }
+                }
+                if (approvedForStudent)
+                {
+                        return Ok(sectionsDto);
+                }
+                else //if the course is not approved
+                {
+                     return Ok("You can't view the content of this course," +
+                         "order the course, or follow your pre-existing order");
                 }
 
-                return Ok(sectionsDto);
+
             }
-            //else if (courseStatus == 2) //waiting for payment
-            //{
-            //    return Ok("You need to pay before viewing/attending this course, for more info click here: ");
-            //}
-            //else if (courseStatus == 0) //ordered
-            //{
-            //    return Ok("Your order is under proccessing. Please wait.");
-            //}
-            else //if the user didn't order yet - Default
-            {
-                return Ok("You have to order this course to be able to view/attend it");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            //otherwise
+            return Ok("Please Sign Up!");
         }
 
-
-        //***************************** TODO: GetSection NEEEDS TESTING!!! *************************//
-
-        // GET api/courses/section/sectionId
-        [HttpGet("sections/{sectionId}", Name = "GetSection")]
-        public async Task<Object> GetSection(int sectionId)
+        // GET api/courses/section/courseId/sectionId
+        [HttpGet("section/{courseId}/{sectionId}", Name = "GetSection")]
+        [Authorize(Roles = "Admin, Mentor, Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<Object> GetSection(int sectionId, int courseId)
         {
          
             if (!_sectionRepository.SectionExists(sectionId))
@@ -250,38 +263,59 @@ namespace OnlineLearningSystem.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var section = _sectionRepository.GetSection(sectionId);
-            int courseId = (int)section.Course.Id;
+            var section = new Section();
 
-            string studentId = User.Claims.First(c => c.Type == "UserID").Value;
-            var student = await _userManager.FindByIdAsync(studentId);
-            var myCourses = _courseRepository.GetMyCourses(studentId).ToList();
+            section = _sectionRepository.GetSection(sectionId);
 
-            bool approvedCourse = false;
+            if (section == null)
+                return BadRequest();
 
-            foreach (var course in myCourses)
-            {
-                if (courseId == course.Id)
-                    approvedCourse = true;
+            string userId = User.Claims.First(c => c.Type == "UserID").Value;
+            var user = await _userManager.FindByIdAsync(userId);
+            var userRole = await _userManager.GetRolesAsync(user);
 
-            }
+            var myCourses = _courseRepository.GetMyCourses(userId).ToList();
+            bool approvedForStudent = false;
 
-            if (approvedCourse) //Approved
-            {
-                var sectionDto = new SectionDto
-                {
+            var sectionDto = new SectionDto() { 
                     Id = section.Id,
                     Title = section.Title,
                     Videos = section.Videos
                 };
 
+            if (userRole[0].Equals("Admin") || userRole[0].Equals("Mentor"))
+            {
                 return Ok(sectionDto);
             }
-            else //otherwise - the user shouldn't be able to reach this method getSection
-            //unlike the one above, that's why it doen;t contain detailed error msgs
+
+            if (userRole[0].Equals("Student"))
             {
-                return Ok("You are not allowed to view this course's section");
+
+                foreach (var course in myCourses)
+                //all the courses in myCourses are approved by the admin
+                {
+                    if (courseId == course.Id)
+                    {
+                        approvedForStudent = true;
+                        break;
+                    }
+                }
+                if (approvedForStudent)
+                {
+                    return Ok(sectionDto);
+                }
+                else //if the course is not approved
+                {
+                    return Ok("You can't view the content of this course," +
+                        "order the course, or follow your pre-existing order");
+                }
+
+
             }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            //otherwise
+            return Ok("Please Sign Up!");
         }
 
         // POST api/courses/sections/courseId
@@ -311,7 +345,7 @@ namespace OnlineLearningSystem.Controllers
         // DELETE api/courses/sections/courseId/sectionId
         [HttpDelete("sections/{courseId}/{sectionId}")]
         [Authorize(Roles = "Admin,Mentor", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult DeleteSectionOfACourse(int courseId, int sectionId)
+        public ActionResult DeleteSection(int courseId, int sectionId)
         {
             if (!_courseRepository.CourseExists(courseId))
                 return NotFound();
@@ -321,6 +355,16 @@ namespace OnlineLearningSystem.Controllers
 
             var section = _sectionRepository.GetSection(sectionId);
             var course = _courseRepository.GetCourse(courseId);
+
+            if (_videoRepository.GetAllVideosFromSection(sectionId).Count() > 0)
+            {
+                var videos = _videoRepository.GetAllVideosFromSection(sectionId);
+                foreach (var video in videos)
+                {
+                    if (!_videoRepository.DeleteVideo(video))
+                        return BadRequest(ModelState);
+                }
+            }
 
             if (!_courseRepository.DeleteSectionOfACourse(section, course))
                 ModelState.AddModelError("", $"Something went wrong!");
@@ -337,8 +381,10 @@ namespace OnlineLearningSystem.Controllers
         // PUT api/courses/sections/courseId/sectionId
         [HttpPut("sections/{courseId}/{sectionId}")]
         [Authorize(Roles = "Admin,Mentor", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult UpdateSectionOfACourse(int courseId, int sectionId, [FromBody] string newSection)
+        public ActionResult UpdateSectionOfACourse(int courseId, int sectionId, 
+            [FromBody] string newSection)
         {
+
             if (!_courseRepository.CourseExists(courseId))
                 return NotFound();
 
@@ -372,7 +418,7 @@ namespace OnlineLearningSystem.Controllers
             return Ok(myCourses);
         }
 
-        [HttpGet("myOrders")]
+        [HttpGet("myorders")]
         [Authorize(Roles = "Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         //GET: api/courses/myOrders
         public async Task<Object> MyOrderedCourses()
@@ -569,56 +615,38 @@ namespace OnlineLearningSystem.Controllers
             return Ok(ordersDto);
         }
 
-        // MyCourses - Admin Marks Orders --- DO NOT WORK !! TO DO
+        // MyCourses - Admin Marks Orders 
 
-        // PUT api/courses/orders/approve/{courseId}/{studentId}
-        [HttpPut("orders/approve/{courseId}/{studentId}")]
+        // PUT api/courses/orders/approve
+        [HttpPut("orders/approve")]
         [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<Object> MarkACourseOrderAsApproved(int courseId, string studentId, 
-            [FromBody] StudentCourse order)
+        public async Task<Object> MarkACourseOrderAsApproved([FromBody] StudentCourse order)
         {
-            if (!_courseRepository.CourseExists(courseId))
-                return NotFound();
-
-            var student = await _userManager.FindByIdAsync(studentId);
-
-            if (student == null)
-                return NotFound();
-
-            var course = _courseRepository.GetCourse(courseId);
-
+           
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (_courseRepository.MarkACourseOrderAsApproved(order))
-            {
-                ModelState.AddModelError("", $"something went wrong!");
-                return BadRequest(ModelState);
-            }
+            _courseRepository.MarkACourseOrderAsApproved(order);
 
             return NoContent();
 
         }
 
 
-        //// PUT api/courses/orders/waiting/{courseId}/{studentId}
-        //[HttpPut("orders/waiting/{courseId}/{studentId}")]
-        //[Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        //public async Task<Object> MarkACourseOrderAsWaitingForPayment([FromBody] StudentCourse order)
-        //{
+        // PUT api/courses/orders/waiting
+        [HttpPut("orders/waiting")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<Object> MarkACourseOrderAsWaitingForPayment([FromBody] StudentCourse order)
+        {
 
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    if (_courseRepository.MarkACourseOrderAsWaitingForPayment(order))
-        //    {
-        //        ModelState.AddModelError("", $"something went wrong!");
-        //        return BadRequest(ModelState);
-        //    }
+            _courseRepository.MarkACourseOrderAsWaitingForPayment(order);
 
-        //    return NoContent();
+            return NoContent();
 
-        //}
+        }
 
 
 
