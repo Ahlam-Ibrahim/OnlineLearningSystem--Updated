@@ -57,21 +57,20 @@ namespace OnlineLearningSystem
             .AddNewtonsoftJson(options =>
             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
-            services.AddDbContext<AuthenticationContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));  
-
             services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+            options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));  
             
             //Add Repositories Services here
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ISectionRepository, SectionRepository>();
             services.AddScoped<IVideoRepository, VideoRepository>();
+            services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<AuthenticationContext>()
-                .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders().AddRoles<IdentityRole>();
+
             //Here we can customize the default settings for validation
             //Removing UserName might be done from here
             services.Configure<IdentityOptions>(options =>

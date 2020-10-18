@@ -14,7 +14,7 @@ namespace OnlineLearningSystem.Models
         //public string UserName { get; set; }
 
 
-        public virtual ICollection<StudentCourse>  StudentCourses { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
 
     }
 }

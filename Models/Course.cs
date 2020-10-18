@@ -36,7 +36,7 @@ namespace OnlineLearningSystem.Models
 
         public virtual ICollection<Section> Sections { get; set; }
         public virtual ICollection<CourseCategory> CourseCategories { get; set; }
-        public virtual ICollection<StudentCourse> StudentCourses { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
 
 
 

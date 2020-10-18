@@ -25,31 +25,80 @@ namespace OnlineLearningSystem.Controllers
         private readonly IVideoRepository _videoRepository;
         private readonly ISectionRepository _sectionRepository;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private IEnrollmentRepository _enrollmentRepository;
+        private UserManager<ApplicationUser> _userManager;
+
 
         public VideosController(IVideoRepository videoRepository,
-            IHostingEnvironment hostingEnvironment, ISectionRepository sectionRepository)
+            IHostingEnvironment hostingEnvironment,
+            ISectionRepository sectionRepository,
+            UserManager<ApplicationUser> userManager,
+            IEnrollmentRepository enrollmentRepository)
         {
             _videoRepository = videoRepository;
             _hostingEnvironment = hostingEnvironment;
             _sectionRepository = sectionRepository;
+            _userManager = userManager;
+            _enrollmentRepository = enrollmentRepository;
         }
 
-        // GET api/videos/all/{sectionId}
-        [HttpGet("all/{sectionId}")]
-        public ActionResult GetAllVideosFromSection(int sectionId) //re-implement
+        // GET api/videos/all/{sectionId}/{courseId}
+        [HttpGet("all/{sectionId}/{courseId}")]
+        [Authorize(Roles = "Admin, Mentor, Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult> GetAllVideosFromSectionAsync(int sectionId, int courseId) //re-implement
         {
             var videos = _videoRepository.GetAllVideosFromSection(sectionId).ToList();
-   
-            if (!ModelState.IsValid)
-                return BadRequest();
 
-            return Ok(videos);
+            string userId = User.Claims.First(c => c.Type == "UserID").Value;
+            var user = await _userManager.FindByIdAsync(userId);
+            var userRole = await _userManager.GetRolesAsync(user);
+
+            var myCourses = _enrollmentRepository.GetMyCourses(userId).ToList();
+            bool approvedForStudent = false;
+
+            if (userRole[0].Equals("Admin") || userRole[0].Equals("Mentor"))
+            {
+                return Ok(videos);
+            }
+
+            if (userRole[0].Equals("Student"))
+            {
+
+                foreach (var course in myCourses)
+                //all the courses in myCourses are approved by the admin
+                {
+                    if (courseId == course.Id)
+                    {
+                        approvedForStudent = true;
+                        break;
+                    }
+                }
+                if (approvedForStudent)
+                {
+                    return Ok(videos);
+                }
+                else //if the course is not approved
+                {
+                    return Ok("You can't view the content of this course," +
+                        "order the course, or follow your pre-existing order");
+                }
+
+
+            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            //otherwise
+            return Ok("You are not authorized to view this page!");
         }
 
         // GET api/videos/videoId
         [HttpGet("{videoId}", Name = "GetVideo")]
-        public ActionResult GetVideo(int videoId)
+        // GET api/videos/{sectionId}/{courseId}
+        [HttpGet("{videoId}/{courseId}")]
+        [Authorize(Roles = "Admin, Mentor, Student", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ActionResult> GetVideoAsync(int videoId, int courseId)
         {
+
             if (!_videoRepository.VideoExists(videoId))
                 return NotFound();
 
@@ -58,14 +107,57 @@ namespace OnlineLearningSystem.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok(video);
+            string userId = User.Claims.First(c => c.Type == "UserID").Value;
+            var user = await _userManager.FindByIdAsync(userId);
+            var userRole = await _userManager.GetRolesAsync(user);
+
+            var myCourses = _enrollmentRepository.GetMyCourses(userId).ToList();
+            bool approvedForStudent = false;
+
+            if (userRole[0].Equals("Admin") || userRole[0].Equals("Mentor"))
+            {
+                return Ok(video);
+            }
+
+            if (userRole[0].Equals("Student"))
+            {
+
+                foreach (var course in myCourses)
+                //all the courses in myCourses are approved by the admin
+                {
+                    if (courseId == course.Id)
+                    {
+                        approvedForStudent = true;
+                        break;
+                    }
+                }
+                if (approvedForStudent)
+                {
+                    return Ok(video);
+                }
+                else //if the course is not approved
+                {
+                    return Ok("You can't view the content of this course," +
+                        "order the course, or follow your pre-existing order");
+                }
+            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            //otherwise
+            return Ok("You are not authorized to view this page!");
         }
 
         // POST api/videos
         [HttpPost]
+        [Authorize(Roles = "Admin, Mentor", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult UploadVideoforPostman([FromForm] IFormFile video,
             [FromForm] string title, [FromForm] int sectionId)
         {
+
+            if (!_sectionRepository.SectionExists(sectionId))
+                return NotFound();
+
+            var section = _sectionRepository.GetSection(sectionId);
             string uniqueFileName = null;
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -79,11 +171,6 @@ namespace OnlineLearningSystem.Controllers
             {
                 video.CopyTo(fileStream);
             }
-
-            if (!_sectionRepository.SectionExists(sectionId))
-                return NotFound();
-
-            var section = _sectionRepository.GetSection(sectionId);
 
             Video newVideo = new Video
             {

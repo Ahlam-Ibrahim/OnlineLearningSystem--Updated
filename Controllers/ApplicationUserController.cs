@@ -14,6 +14,8 @@ using OnlineLearningSystem.Models;
 using System.Text;
 using OnlineLearningSystem.Services;
 using OnlineLearningSystem.Dtos;
+using System.Net;
+using Microsoft.AspNetCore.Authorization;
 
 namespace OnlineLearningSystem.Controllers
 {
@@ -43,6 +45,33 @@ namespace OnlineLearningSystem.Controllers
         {
             //The role assigned when a new member signs up
             model.Role = "Student";
+            var applicationUser = new ApplicationUser() {
+                UserName = model.UserName,
+                Email = model.Email,
+                FullName = model.FullName
+            };
+
+            try
+            {
+                var result = await _userManager.CreateAsync(applicationUser, model.Password);
+                await _userManager.AddToRoleAsync(applicationUser, model.Role);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        } 
+        
+        [HttpPost]
+        [Route("mentor")]
+        [Authorize(Roles = "Admin", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //POST : /api/ApplicationUser/mentor
+        public async Task<Object> PostMentor(ApplicationUserModel model)
+        {
+            //The role assigned when a new member signs up
+            model.Role = "Mentor";
             var applicationUser = new ApplicationUser() {
                 UserName = model.UserName,
                 Email = model.Email,
@@ -95,8 +124,9 @@ namespace OnlineLearningSystem.Controllers
         }
 
         [HttpGet]
-        [Route("profile")]
-        //GET: /api/content/profile
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Route("info")]
+        //GET: /api/ApplicationUser/profile
         public async Task<Object> GetUserProfile()
         {
             string userId = User.Claims.First(c => c.Type == "UserID").Value;
@@ -104,45 +134,9 @@ namespace OnlineLearningSystem.Controllers
             return new
             {
                 user.FullName,
-                user.PhoneNumber,
                 user.Email,
                 user.UserName
             };
         }
-        //ApplicationUser - Student Courses => MyCourses
-
-        //[HttpGet]
-        ////GET : /api/ApplicationUser
-        //public async Task<IActionResult> GetMyCourses()
-        //{
-        //    ClaimsPrincipal currentUser = this.User;
-        //    var currentUserName = "lll";
-        //    if (currentUser == null)
-        //    {
-        //        currentUserName = "kkk";
-        //        currentUserName = currentUser.FindFirst(ClaimTypes.NameIdentifier).Value;
-        //    }
-        //    //ApplicationUser user = await _userManager.FindByNameAsync(currentUserName);
-
-        //    //var courses = _courseRepository.GetMyCourses(currentUserName);
-
-        //    //if (!ModelState.IsValid)
-        //    //    return BadRequest();
-
-        //    //var coursesDto = new List<CourseDto>();
-        //    //foreach (var course in courses)
-        //    //{
-        //    //    coursesDto.Add(new CourseDto
-        //    //    {
-        //    //        Id = course.Id,
-        //    //        Title = course.Title,
-        //    //        Description = course.Description,
-        //    //        Duration = course.Duration,
-        //    //        DateCreated = course.DateCreated
-        //    //    });
-        //    //}
-        //    return Ok(currentUser.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-        //}
     }
 }

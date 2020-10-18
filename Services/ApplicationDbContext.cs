@@ -1,30 +1,51 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using OnlineLearningSystem.Models;
 
-
-namespace OnlineLearningSystem.Services
+namespace OnlineLearningSystem.Models
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):base(options)
         {
-        }
-            public DbSet<Course> Courses { get; set; }
-            public DbSet<Category> Categories { get; set; }
-            public DbSet<StudentCourse> StudentCourses { get; set; }
-            public DbSet<Section> Sections { get; set; }
-            public DbSet<Video> Videos { get; set; }
-            public DbSet<CourseCategory> CourseCategories { get; set; }
-            
 
+        }
+        public DbSet<Course> Courses { get; set; }
+        public DbSet<Category> Categories { get; set; }
+        public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<Section> Sections { get; set; }
+        public DbSet<Video> Videos { get; set; }
+        public DbSet<CourseCategory> CourseCategories { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //enum classes
+            base.OnModelCreating(modelBuilder);
+
+            //Seeding DB with Roles and the admin account
+            var adminRoleId = Guid.NewGuid().ToString();
+            var adminUserId = Guid.NewGuid().ToString();
+            modelBuilder.Entity<IdentityRole>().HasData(new List<IdentityRole>
+            {
+                new IdentityRole {
+                    Id = adminRoleId,
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                },
+                new IdentityRole {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Mentor",
+                    NormalizedName = "MENTOR"
+                },
+                new IdentityRole {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "Student",
+                    NormalizedName = "STUDENT"
+                },
+            });
 
             modelBuilder
             .Entity<Course>()
@@ -34,11 +55,12 @@ namespace OnlineLearningSystem.Services
                 v => (Location)Enum.Parse(typeof(Location), v));
 
             modelBuilder
-            .Entity<StudentCourse>()
+            .Entity<Enrollment>()
             .Property(p => p.Status)
             .HasConversion(
                 v => v.ToString(),
                 v => (Status)Enum.Parse(typeof(Status), v));
+
 
             //key - CourseCategory
             modelBuilder.Entity<CourseCategory>()
@@ -54,16 +76,16 @@ namespace OnlineLearningSystem.Services
                 .HasForeignKey(c => c.CourseID);
 
             //key - StudentCourses
-            modelBuilder.Entity<StudentCourse>()
+            modelBuilder.Entity<Enrollment>()
                 .HasKey(mc => new { mc.CourseID, mc.StudentID });
             //Many-to-Many Relationship  - StudentCourses
-            modelBuilder.Entity<StudentCourse>()
+            modelBuilder.Entity<Enrollment>()
                 .HasOne(m => m.Course)
-                .WithMany(mc => mc.StudentCourses)
+                .WithMany(mc => mc.Enrollments)
                 .HasForeignKey(m => m.CourseID);
-            modelBuilder.Entity<StudentCourse>()
+            modelBuilder.Entity<Enrollment>()
                 .HasOne(c => c.Student)
-                .WithMany(mc => mc.StudentCourses)
+                .WithMany(mc => mc.Enrollments)
                 .HasForeignKey(c => c.StudentID);
 
 

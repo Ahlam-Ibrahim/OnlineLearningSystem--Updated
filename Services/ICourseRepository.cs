@@ -22,27 +22,5 @@ namespace OnlineLearningSystem.Services
         ICollection<Section> GetAllSectionOfACourse(int courseId);
         bool Save();
 
-        //MyCourses
-
-        public ICollection<Course> GetMyCourses(string studentId);
-        public ICollection<StudentCourse> MyOrderedCourses(string studentId);
-        public bool OrderACourse(Course course, ApplicationUser student);
-        public ICollection<StudentCourse> GetAllCoursesOrders();
-        public ICollection<StudentCourse> GetASpecificCourseOrders(int courseId);
-        public ICollection<StudentCourse> GetAllOrdersFromAStudent(string studentId);
-        public ICollection<StudentCourse> GetAllWaitingForPaymentOrders();
-        public ICollection<StudentCourse> GetWaitingForPaymentOrdersOfACourse(int courseId);
-        public ICollection<StudentCourse> GetWaitingForPaymentOrdersOfAStudent(string studentId);
-        public bool MarkACourseOrderAsApproved(StudentCourse order);
-        public bool MarkACourseOrderAsWaitingForPayment(StudentCourse order);
-
-
-
-
-
-
-
-
-
     }
 }
