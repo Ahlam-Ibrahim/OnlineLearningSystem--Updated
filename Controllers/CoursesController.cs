@@ -51,7 +51,8 @@ namespace OnlineLearningSystem.Controllers
                     Title = course.Title,
                     Description = course.Description,
                     Duration = course.Duration,
-                    DateCreated = course.DateCreated.Date
+                    DateCreated = course.DateCreated.Date,
+                    Price = course.Price
                 });
             }
             return Ok(coursesDto);
@@ -74,7 +75,8 @@ namespace OnlineLearningSystem.Controllers
                 Title = course.Title,
                 Description = course.Description,
                 Duration = course.Duration,
-                DateCreated = course.DateCreated.Date
+                DateCreated = course.DateCreated.Date,
+                Price = course.Price
             };
 
             return Ok(courseDto);
@@ -99,7 +101,8 @@ namespace OnlineLearningSystem.Controllers
                     Title = course.Title,
                     Description = course.Description,
                     Duration = course.Duration,
-                    DateCreated = course.DateCreated
+                    DateCreated = course.DateCreated,
+                    Price = course.Price
                 });
             }
 

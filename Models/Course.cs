@@ -31,6 +31,7 @@ namespace OnlineLearningSystem.Models
         [Required]
         public string Description { get; set; }
         public int Duration { get; set; }
+        public double Price { get; set; }
         public DateTime DateCreated { get; set; }
         public Location Location { get; set; }
 

@@ -25,27 +25,49 @@ namespace OnlineLearningSystem.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            //Seeding DB with Roles and the admin account
-            var adminRoleId = Guid.NewGuid().ToString();
-            var adminUserId = Guid.NewGuid().ToString();
-            modelBuilder.Entity<IdentityRole>().HasData(new List<IdentityRole>
+            ////Seeding DB with Roles and the admin account
+
+            ApplicationUser admin = new ApplicationUser
             {
-                new IdentityRole {
-                    Id = adminRoleId,
-                    Name = "Admin",
-                    NormalizedName = "ADMIN"
-                },
-                new IdentityRole {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Mentor",
-                    NormalizedName = "MENTOR"
-                },
-                new IdentityRole {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "Student",
-                    NormalizedName = "STUDENT"
-                },
+                UserName = "Admin",
+                FullName = "Admin",
+                NormalizedUserName = "Admin".ToUpper(),
+                Email = "Admin@gmail.com",
+                NormalizedEmail = "Admin@gmail.com".ToUpper(),
+                EmailConfirmed = false,
+                PhoneNumberConfirmed = false,
+                TwoFactorEnabled = false,
+                LockoutEnabled = false,
+                AccessFailedCount = 0
+
+            };
+
+            PasswordHasher<ApplicationUser> ph = new PasswordHasher<ApplicationUser>();
+            admin.PasswordHash = ph.HashPassword(admin, "P@ssword1");
+
+            IdentityRole adminRole = new IdentityRole
+            {
+                Name = "Admin",
+                NormalizedName = "Admin".ToUpper()
+            };
+
+            modelBuilder.Entity<IdentityRole>().HasData(
+                adminRole,
+                new IdentityRole { Name = "Mentor", NormalizedName = "Mentor".ToUpper() },
+                new IdentityRole { Name = "Student", NormalizedName = "Student".ToUpper() }
+            );
+            modelBuilder.Entity<ApplicationUser>().HasData(
+                admin
+            );
+
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
+            {
+                RoleId = adminRole.Id,
+                UserId = admin.Id
             });
+
+
+            //enum classes
 
             modelBuilder
             .Entity<Course>()
