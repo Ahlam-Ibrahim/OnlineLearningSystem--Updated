@@ -11,7 +11,6 @@ namespace OnlineLearningSystem.Models
     {
         [Required]
         public string Title { get; set; }
-        [Required]
         public IFormFile Video { get; set; }
         public virtual Section Section { get; set; }
         

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OnlineLearningSystem.Dtos;
 using OnlineLearningSystem.Models;
@@ -17,11 +20,16 @@ namespace OnlineLearningSystem.Controllers
     {
         private ICategoryRepository _categoryRepository;
         private ICourseRepository _courseRepository;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
-        public CategoriesController(ICategoryRepository categoryRepository, ICourseRepository courseRepository)
+
+        public CategoriesController(ICategoryRepository categoryRepository, 
+            ICourseRepository courseRepository,
+            IHostingEnvironment hostingEnvironment)
         {
             _categoryRepository = categoryRepository;
             _courseRepository = courseRepository;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         // GET api/categories
@@ -39,7 +47,8 @@ namespace OnlineLearningSystem.Controllers
                 categoriesDto.Add(new CategoryDto
                 {
                     Id = category.Id,
-                    Title = category.Title
+                    Title = category.Title,
+                    PhotoPath = category.PhotoPath
 
                 });
             }
@@ -60,7 +69,8 @@ namespace OnlineLearningSystem.Controllers
             var categoryDto = new CategoryDto
             {
                 Id = category.Id,
-                Title = category.Title
+                Title = category.Title,
+                PhotoPath = category.PhotoPath
             };
 
             return Ok(categoryDto);
@@ -82,8 +92,8 @@ namespace OnlineLearningSystem.Controllers
                 categoriesDto.Add(new CategoryDto
                 {
                     Id = category.Id,
-                    Title = category.Title
-
+                    Title = category.Title,
+                    PhotoPath = category.PhotoPath
                 });
             }
 
@@ -93,13 +103,34 @@ namespace OnlineLearningSystem.Controllers
         // POST api/catgories
         [HttpPost]
         [Authorize(Roles = "Admin,Mentor", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult CreateCategory([FromBody] Category category)
+        public ActionResult CreateCategory([FromForm] IFormFile photo,
+            [FromForm] string title)
         {
-            if (category == null)
+            if (title == null || photo == null)
                 return BadRequest();
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            string uniqueFileName = null;
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            string uploadsfolder = Path.Combine(_hostingEnvironment.WebRootPath, "CategoryPhotos");
+            uniqueFileName = Guid.NewGuid().ToString() + "_" + photo.FileName;
+
+            string filePath = Path.Combine(uploadsfolder, uniqueFileName);
+            using (FileStream fileStream = new FileStream(filePath,
+              FileMode.Create))
+            {
+                photo.CopyTo(fileStream);
+            }
+
+            Category category = new Category
+            {
+                Title = title,
+                PhotoPath = filePath
+            };
 
             if (!_categoryRepository.CreateCategory(category))
                 ModelState.AddModelError("", $"Something went wrong!");
@@ -111,16 +142,40 @@ namespace OnlineLearningSystem.Controllers
         // POST api/categories/categoryId
         [HttpPut("{categoryId}")]
         [Authorize(Roles = "Admin,Mentor", AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult UpdateCategory(int categoryId, [FromBody] Category category)
+        public ActionResult UpdateCategory(int categoryId, [FromForm] IFormFile photo,
+            [FromForm] string title)
         {
-            if (category == null)
-                return BadRequest();
-
-            if (categoryId != category.Id)
+            if (title == null && photo == null)
                 return BadRequest();
 
             if (!_categoryRepository.CategoryExists(categoryId))
                 return NotFound();
+
+            var category = _categoryRepository.GetCategory(categoryId);
+
+            if (categoryId != category.Id)
+                return BadRequest();
+
+            string filePath = null; 
+
+            if (photo != null)
+            {
+                string uniqueFileName = null;
+                string uploadsfolder = Path.Combine(_hostingEnvironment.WebRootPath, "CategoryPhotos");
+                uniqueFileName = Guid.NewGuid().ToString() + "_" + photo.FileName;
+
+                filePath = Path.Combine(uploadsfolder, uniqueFileName);
+                using (FileStream fileStream = new FileStream(filePath,
+                    FileMode.Create))
+                {
+                    photo.CopyTo(fileStream);
+                    System.IO.File.Delete(Path.Combine(uploadsfolder, category.PhotoPath));
+                }
+            }
+            if(title != null)
+            category.Title = title;
+            if(filePath != null)
+            category.PhotoPath = filePath;
 
             if (!_categoryRepository.UpdateCategory(category))
                 ModelState.AddModelError("", $"Something went wrong!");
@@ -142,6 +197,8 @@ namespace OnlineLearningSystem.Controllers
                 return NotFound();
 
             var category = _categoryRepository.GetCategory(categoryId);
+
+            System.IO.File.Delete(Path.Combine(category.PhotoPath));
 
             if (!_categoryRepository.DeleteCategory(category))
                 ModelState.AddModelError("", $"Something went wrong!");

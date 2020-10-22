@@ -17,6 +17,8 @@ namespace OnlineLearningSystem.Models
         public int Id { get; set; }
         [Required]
         public string Title { get; set; }
+        [Required]
+        public string PhotoPath { get; set; }
         public virtual ICollection<CourseCategory> CourseCategories { get; set; }
 
     }

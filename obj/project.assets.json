@@ -6067,11 +6067,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Lenov\\source\\repos\\OnlineLearningSystem--Updated-main\\OnlineLearningSystem.csproj",
+      "projectUniqueName": "C:\\Users\\Lenov\\source\\repos\\Integeration\\OnlineLearningSystem--Updated-main\\OnlineLearningSystem.csproj",
       "projectName": "OnlineLearningSystem",
-      "projectPath": "C:\\Users\\Lenov\\source\\repos\\OnlineLearningSystem--Updated-main\\OnlineLearningSystem.csproj",
+      "projectPath": "C:\\Users\\Lenov\\source\\repos\\Integeration\\OnlineLearningSystem--Updated-main\\OnlineLearningSystem.csproj",
       "packagesPath": "C:\\Users\\Lenov\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Lenov\\source\\repos\\OnlineLearningSystem--Updated-main\\obj\\",
+      "outputPath": "C:\\Users\\Lenov\\source\\repos\\Integeration\\OnlineLearningSystem--Updated-main\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Lenov\\AppData\\Roaming\\NuGet\\NuGet.Config",

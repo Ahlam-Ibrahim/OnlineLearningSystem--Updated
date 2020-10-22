@@ -196,6 +196,8 @@ namespace OnlineLearningSystem.Controllers
 
             var video = _videoRepository.GetVideo(videoId);
 
+                System.IO.File.Delete(Path.Combine(video.VideoPath));
+
             if (!_videoRepository.DeleteVideo(video))
                 ModelState.AddModelError("", $"Something went wrong!");
 
